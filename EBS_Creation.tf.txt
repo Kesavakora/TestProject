@@ -1,0 +1,133 @@
+# https://stackoverflow.com/questions/62955360/terraform-and-elastic-beanstalk-versions
+
+resource "aws_s3_bucket_object" "user_interface_latest" {
+  bucket = aws_s3_bucket.log_bucket.id
+  key    = "user-interface-${filesha256(local.user_interface_bundle_path)}.zip"
+  source = local.user_interface_bundle_path
+}
+
+resource "aws_elastic_beanstalk_environment" "Kesava-microservice-example-uat" {
+  name = "Kesava-microservice-example-uat"
+  application = ["${aws_s3_bucket.log_bucket.name}"]
+  solution_stack_name = "64bit Amazon Linux 2 v3.2.3 running Docker"
+  cname_prefix = "Kesava-microservice-example-uat-domain"
+  setting {
+    namespace = "aws:autoscaling:launchconfiguration"
+    name = "IamInstanceProfile"
+    value = "aws-elasticbeanstalk-ec2-role"
+  }
+  setting {
+    namespace = "aws:ec2:vpc"
+    name = "VPCId"
+    value = "vpc-0486f43c1b99af680"
+  }
+  setting {
+    namespace = "aws:ec2:vpc"
+    name = "AssociatePublicIpAddress"
+    value = "true"
+  }
+  setting {
+    namespace = "aws:ec2:vpc"
+    name = "Subnets"
+    value = "subnet-00812623eb97b3e3d"
+  }
+  setting {
+    namespace = "aws:ec2:vpc"
+    name = "ELBScheme"
+    value = "internal"
+  }
+  setting {
+    namespace = "aws:autoscaling:launchconfiguration"
+    name = "InstanceType"
+    value = "t2.micro"
+  }
+  setting {
+    namespace = "aws:autoscaling:asg"
+    name = "Availability Zones"
+    value = "Any 2"
+  }
+  setting {
+    namespace = "aws:autoscaling:asg"
+    name = "MinSize"
+    value = "2"
+  }
+  setting {
+    namespace = "aws:autoscaling:asg"
+    name = "MaxSize"
+    value = "3"
+  }
+  setting {
+    namespace = "aws:elasticbeanstalk:environment"
+    name = "ServiceRole"
+    value = "xxxx"
+  }
+  setting {
+    namespace = "aws:elasticbeanstalk:application:environment"
+    name = "environment"
+    value = "uat"
+  }
+  setting {
+    namespace = "aws:elasticbeanstalk:application:environment"
+    name = "LOGGING_APPENDER"
+    value = "GRAYLOG"
+  }
+  setting {
+    namespace = "aws:elasticbeanstalk:healthreporting:system"
+    name = "SystemType"
+    value = "enhanced"
+  }
+  setting {
+    namespace = "aws:autoscaling:updatepolicy:rollingupdate"
+    name = "RollingUpdateEnabled"
+    value = "true"
+  }
+  setting {
+    namespace = "aws:autoscaling:updatepolicy:rollingupdate"
+    name = "RollingUpdateType"
+    value = "Health"
+  }
+  setting {
+    namespace = "aws:autoscaling:updatepolicy:rollingupdate"
+    name = "MinInstancesInService"
+    value = "2"
+  }
+  setting {
+    namespace = "aws:autoscaling:updatepolicy:rollingupdate"
+    name = "MaxBatchSize"
+    value = "1"
+  }
+  setting {
+    namespace = "aws:elb:loadbalancer"
+    name = "CrossZone"
+    value = "true"
+  }
+  setting {
+    namespace = "aws:elasticbeanstalk:command"
+    name = "BatchSizeType"
+    value = "Fixed"
+  }
+  setting {
+    namespace = "aws:elasticbeanstalk:command"
+    name = "BatchSize"
+    value = "1"
+  }
+  setting {
+    namespace = "aws:elasticbeanstalk:command"
+    name = "DeploymentPolicy"
+    value = "Rolling"
+  }
+  setting {
+    namespace = "aws:elb:policies"
+    name = "ConnectionDrainingEnabled"
+    value = "true"
+  }
+  setting {
+    namespace = "aws:autoscaling:launchconfiguration"
+    name = "SecurityGroups"
+    value = ""
+  }
+  tags = {
+    Team = "Kesava"
+    Environment = "UAT"
+  }
+}
